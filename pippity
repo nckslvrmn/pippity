@@ -1,0 +1,28 @@
+#!/usr/bin/env python3
+
+import requests
+
+with open("requirements.txt") as f:
+    data = f.read()
+
+packages = {}
+for package in data.split("\n"):
+    if package == "":
+        continue
+    split = package.split("==")
+    if len(split) != 2:
+        continue
+    resp = requests.get(f"https://pypi.org/pypi/{split[0]}/json")
+    new_version = resp.json()["info"]["version"]
+    if new_version == split[1]:
+        new_version = split[1]
+    else:
+        print(f"{split[0]} updated from {split[1]} to {new_version}")
+    packages[split[0]] = new_version
+
+out = ""
+for name, version in packages.items():
+    out += f"{name}=={version}\n"
+
+with open("requirements.txt", "w") as f:
+    f.write(out)
